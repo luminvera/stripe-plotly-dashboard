@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Integration Hub - Stripe Empire</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="navigation.css">
+    <style>
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .integration-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 2px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+        .integration-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .integration-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .integration-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .integration-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+        .integration-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .metric-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .metric-value {
+            font-weight: 600;
+            color: #374151;
+        }
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .led-green {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        .led-red {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+        .led-yellow {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        .webhook-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 4px solid #6366f1;
+        }
+        .webhook-list {
+            list-style: none;
+            padding: 0;
+        }
+        .webhook-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 3px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .webhook-item:hover {
+            background: white;
+            border-left-color: #6366f1;
+            transform: translateX(5px);
+        }
+        .stream-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e5e7eb;
+        }
+        .stream-log {
+            background: #1a1a1a;
+            color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-timestamp {
+            color: #6366f1;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .log-level {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .level-info { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        .level-warn { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .level-error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html" class="nav-item">📊 Overview</a>
+        <a href="revenue.html" class="nav-item">📈 Revenue</a>
+        <a href="customers.html" class="nav-item">👥 Customers</a>
+        <a href="payments.html" class="nav-item">💳 Payments</a>
+        <a href="financial.html" class="nav-item">🏦 Financial</a>
+        <a href="intelligence.html" class="nav-item">🧠 Intelligence</a>
+        <a href="api-integration.html" class="nav-item active">🔗 API Hub</a>
+    </nav>
+
+    <div class="container">
+        <header class="header" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+            <h1 class="title" style="color: white;">🔗 Real-time API Integration Hub</h1>
+        </header>
+
+        <div class="integration-grid">
+            <div class="integration-card">
+                <div class="integration-header">
+                    <div class="integration-title">
+                        <span>💳</span>
+                        <span>Stripe API</span>
+                        <div class="integration-status status-connected">
+                            <span>🔗 Connected</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="integration-metrics">
+                    <div class="metric-item">
+                        <div class="metric-label">Status:</div>
+                        <div class="metric-value">Active</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Rate Limit:</div>
+                        <div class="metric-value">100/req-sec</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Today:</div>
+                        <div class="metric-value">15.2K requests</div>
+                    </div>
+                </div>
+                <div class="integration-header" style="margin-top: 20px;">
+                    <div class="integration-title">
+                        <span class="status-led led-green"></span>
+                        <span>Live Webhooks</span>
+                        <div class="integration-status status-connected">
+                            <span>⚡ Active</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="integration-metrics">
+                    <div class="metric-item">
+                        <div class="metric-label">Endpoints:</div>
+                        <div class="metric-value">8 active</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Last Event:</div>
+                        <div class="metric-value">2s ago</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Success Rate:</div>
+                        <div class="metric-value">98.7%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="integration-card">
+                <div class="integration-header">
+                    <div class="integration-title">
+                        <span>📧</span>
+                        <span>Slack Integration</span>
+                        <div class="integration-status status-pending">
+                            <span>🔗 Configure</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="integration-metrics">
+                    <div class="metric-item">
+                        <div class="metric-label">Channel:</div>
+                        <div class="metric-value">#analytics</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Messages:</div>
+                        <div class="metric-value">Not configured</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Webhooks:</div>
+                        <div class="metric-value">Ready</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="integration-card">
+                <div class="integration-header">
+                    <div class="integration-title">
+                        <span>📊</span>
+                        <span>Google Analytics</span>
+                        <div class="integration-status status-disconnected">
+                            <span>🚫 Not Connected</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="integration-metrics">
+                    <div class="metric-item">
+                        <div class="metric-label">Type:</div>
+                        <div class="metric-value">GA4</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Views Today:</div>
+                        <div class="metric-value">-</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Users Today:</div>
+                        <div class="metric-value">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="integration-card">
+                <div class="integration-header">
+                    <div class="integration-title">
+                        <span>📧</span>
+                        <span>Gmail Reports</span>
+                        <div class="integration-status status-pending">
+                            <span>📧 Setup</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="integration-metrics">
+                    <div class="metric-item">
+                        <div class="metric-label">Schedule:</div>
+                        <div class="metric-value">Daily 9:00 AM</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Recipients:</div>
+                        <div class="metric-value">3 configured</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Last Sent:</div>
+                        <div class="metric-value">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="webhook-section">
+            <h2 class="chart-title">🔗 Active Webhooks Configuration</h2>
+            <div class="webhook-list">
+                <div class="webhook-item">
+                    <div class="metric-item" style="border: none; background: transparent;">
+                        <div class="integration-title">
+                            <span>✅</span>
+                            <span>charge.succeeded</span>
+                            <div class="status-led led-green"></div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
+                            Triggers on successful payments
+                        </div>
+                    </div>
+                </div>
+                <div class="webhook-item">
+                    <div class="metric-item" style="border: none; background: transparent;">
+                        <div class="integration-title">
+                            <span>✅</span>
+                            <span>customer.subscription.created</span>
+                            <div class="status-led led-green"></div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
+                            Triggers on new subscriptions
+                        </div>
+                    </div>
+                </div>
+                <div class="webhook-item">
+                    <div class="metric-item" style="border: none; background: transparent;">
+                        <div class="integration-title">
+                            <span>✅</span>
+                            <span>invoice.payment_succeeded</span>
+                            <div class="status-led led-green"></div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
+                            Triggers on successful invoice payments
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stream-section">
+            <h2 class="chart-title">📡 Real-time Data Stream</h2>
+            <div class="stream-log" id="streamLog">
+                <div class="log-timestamp">2025-02-28 18:52:17</div>
+                <span class="log-level level-info">INFO</span>
+                <span class="log-level">Stripe webhook received: charge.succeeded</span>
+                <div>Amount: $299.00, Customer: id_456789, Method: visa_ending_4242</div>
+            </div>
+            <div class="stream-log">
+                <div class="log-timestamp">2025-02-28 18:52:45</div>
+                <span class="log-level level-info">INFO</span>
+                <span class="log-level">Slack notification sent: Payment received</span>
+                <div>Channel: #analytics, Message: New payment $299.00 processed</div>
+            </div>
+            <div class="stream-log">
+                <div class="log-timestamp">2025-02-28 18:53:02</div>
+                <span class="log-level level-warn">WARN</span>
+                <span class="log-level">Rate limit approaching: 95% of API quota used</span>
+                <div>Consider upgrading API tier or implementing caching</div>
+            </div>
+            <div class="stream-log">
+                <div class="log-timestamp">2025-02-28 18:53:31</div>
+                <span class="log-level level-error">ERROR</span>
+                <span class="log-level">Slack webhook failed: 401 Unauthorized</span>
+                <div>Retrying with exponential backoff...</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">📊 API Performance Monitor</h2>
+                <div id="apiMonitorChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🔄 Integration Health Status</h2>
+                <div id="integrationHealthChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">📈 Data Flow Analysis</h2>
+                <div id="dataFlowChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">⚡ Event Processing Rate</h2>
+                <div id="eventProcessingChart"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="testAllIntegrations()">🧪 Test All Integrations</button>
+            <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn btn-secondary" onclick="configureWebhooks()">🔧 Configure Webhooks</button>
+        </div>
+
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Initializing integration hub...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeIntegrationHub();
+        });
+
+        function initializeIntegrationHub() {
+            updateIntegrationStatus();
+            createAPIMonitorChart();
+            createIntegrationHealthChart();
+            createDataFlowChart();
+            createEventProcessingChart();
+            startRealTimeStream();
+        }
+
+        function updateIntegrationStatus() {
+            // Update integration status indicators
+            const stripeStatus = document.querySelector('.integration-card:nth-child(1) .integration-status');
+            const slackStatus = document.querySelector('.integration-card:nth-child(2) .integration-status');
+            const gaStatus = document.querySelector('.integration-card:nth-child(3) .integration-status');
+            const gmailStatus = document.querySelector('.integration-card:nth-child(4) .integration-status');
+            
+            // Simulated status updates
+            if (stripeStatus) stripeStatus.innerHTML = '<span>🔗 Connected</span>';
+            if (slackStatus) slackStatus.innerHTML = '<span>🔗 Connected</span>';
+            if (gaStatus) gaStatus.innerHTML = '<span>🚫 Not Connected</span>';
+            if (gmailStatus) gmailStatus.innerHTML = '<span>📧 Setup</span>';
+        }
+
+        function createAPIMonitorChart() {
+            const apiData = [
+                {time: '18:00', requests: 8500, response: 120, errors: 0},
+                {time: '18:05', requests: 9200, response: 135, errors: 2},
+                {time: '18:10', requests: 7800, response: 110, errors: 0},
+                {time: '18:15', requests: 8900, response: 125, errors: 1},
+                {time: '18:20', requests: 9500, response: 140, errors: 0},
+                {time: '18:25', requests: 10200, response: 155, errors: 3},
+                {time: '18:30', requests: 8800, response: 115, errors: 1}
+            ];
+            
+            const requestsTrace = {
+                x: apiData.map(d => d.time),
+                y: apiData.map(d => d.requests),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'API Requests',
+                line: {color: '#6366f1', width: 2},
+                marker: {color: '#6366f1', size: 6}
+            };
+
+            const responseTrace = {
+                x: apiData.map(d => d.time),
+                y: apiData.map(d => d.response),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Response Time',
+                line: {color: '#10b981', width: 2},
+                marker: {color: '#10b981', size: 6}
+            };
+
+            const errorTrace = {
+                x: apiData.map(d => d.time),
+                y: apiData.map(d => d.errors),
+                type: 'bar',
+                name: 'API Errors',
+                marker: {color: '#ef4444', line: {color: 'white', width: 2}}
+            };
+
+            const layout = {
+                title: 'API Performance Monitor',
+                xaxis: {title: 'Time'},
+                yaxis: {title: 'Count/Time (ms)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                showlegend: true
+            };
+
+            Plotly.newPlot('apiMonitorChart', [requestsTrace, responseTrace, errorTrace], layout, {responsive: true});
+        }
+
+        function createIntegrationHealthChart() {
+            const healthData = [
+                {integration: 'Stripe', status: 100, lastCheck: '2s ago'},
+                {integration: 'Slack', status: 100, lastCheck: '5s ago'},
+                {integration: 'Google Analytics', status: 0, lastCheck: 'Never'},
+                {integration: 'Gmail', status: 75, lastCheck: '1h ago'}
+            ];
+            
+            const statusTrace = {
+                x: healthData.map(h => h.integration),
+                y: healthData.map(h => h.status),
+                type: 'bar',
+                name: 'Integration Health',
+                marker: {
+                    color: healthData.map(h => {
+                        if (h.status === 100) return '#10b981';
+                        if (h.status === 75) return '#f59e0b';
+                        return '#ef4444';
+                    }),
+                    line: {color: 'white', width: 2}
+                },
+                text: healthData.map(h => `${h.status}%`),
+                textposition: 'auto'
+            };
+
+            const layout = {
+                title: 'Integration Health Status',
+                xaxis: {title: 'Integration'},
+                yaxis: {title: 'Health (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('integrationHealthChart', [statusTrace], layout, {responsive: true});
+        }
+
+        function createDataFlowChart() {
+            const flowData = [
+                {source: 'Stripe', destination: 'Dashboard', volume: 450, status: 'Active'},
+                {source: 'Dashboard', destination: 'Slack', volume: 350, status: 'Active'},
+                {source: 'Slack', destination: 'Analytics', volume: 120, status: 'Active'},
+                {source: 'Slack', destination: 'Gmail', volume: 80, status: 'Active'}
+                {source: 'Analytics', destination: 'Database', volume: 200, status: 'Active'}
+            ];
+            
+            const trace = {
+                type: 'sankey',
+                orientation: 'h',
+                node: {
+                    pad: 15,
+                    thickness: 20,
+                    line: {color: 'rgba(0,0,0,0.3)'}
+                },
+                link: {
+                    source: flowData.map(f => f.source),
+                    target: flowData.map(f => f.destination),
+                    value: flowData.map(f => f.volume),
+                    color: flowData.map(f => {
+                        if (f.status === 'Active') return '#10b981';
+                        return '#f59e0b';
+                    })
+                }
+            };
+
+            const layout = {
+                title: 'Real-time Data Flow Analysis',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('dataFlowChart', [trace], layout, {responsive: true});
+        }
+
+        function createEventProcessingChart() {
+            const eventData = [
+                {event: 'charge.succeeded', count: 450, processing: 850, success: 98.7},
+                {event: 'customer.created', count: 120, processing: 200, success: 99.2},
+                {event: 'invoice.created', count: 80, processing: 150, success: 97.5},
+                {event: 'payment_intent.created', count: 200, processing: 300, success: 96.8}
+            ];
+            
+            const countTrace = {
+                x: eventData.map(e => e.event),
+                y: eventData.map(e => e.count),
+                type: 'bar',
+                name: 'Event Count',
+                marker: {color: '#6366f1', line: {color: 'white', width: 2}}
+            };
+
+            const processingTrace = {
+                x: eventData.map(e => e.event),
+                y: eventData.map(e => e.processing),
+                type: 'bar',
+                name: 'Processing Time',
+                marker: {color: '#f59e0b', line: {color: 'white', width: 2}}
+            };
+
+            const successTrace = {
+                x: eventData.map(e => e.event),
+                y: eventData.map(e => e.success),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Success Rate',
+                line: {color: '#10b981', width: 3},
+                marker: {
+                    color: '#10b981', size: 8, line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.1)'
+            };
+
+            const layout = {
+                title: 'Event Processing Rate Analysis',
+                xaxis: {title: 'Event Type'},
+                yaxis: {title: 'Count/Time (ms)/Success (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                showlegend: true
+            };
+
+            Plotly.newPlot('eventProcessingChart', [countTrace, processingTrace, successTrace], layout, {responsive: true});
+        }
+
+        function startRealTimeStream() {
+            // Simulate real-time log updates
+            setInterval(() => {
+                const streamLog = document.getElementById('streamLog');
+                if (streamLog) {
+                    const now = new Date();
+                    const timestamp = now.toLocaleTimeString();
+                    const newEntry = document.createElement('div');
+                    newEntry.className = 'stream-log';
+                    newEntry.innerHTML = `
+                        <div class="log-timestamp">${timestamp}</div>
+                        <span class="log-level level-info">INFO</span>
+                        <span class="log-level">Real-time sync completed</span>
+                        <div>APIs synchronized, all systems operational</div>
+                    `;
+                    
+                    streamLog.insertBefore(newEntry, streamLog.firstChild);
+                    
+                    // Keep only last 10 entries
+                    const entries = streamLog.children;
+                    while (entries.length > 10) {
+                        streamLog.removeChild(entries[entries.length - 1]);
+                    }
+                }
+            }, 3000);
+        }
+
+        function testAllIntegrations() {
+            alert('🧪 Testing all integrations...\n\n\n✅ Stripe API: Connected\n⚠️ Slack: Needs configuration\n🚫 Google Analytics: Not connected\n📧 Gmail: Setup incomplete\n\n\nWould you like to configure the missing integrations?');
+        }
+
+        function refreshData() {
+            location.reload();
+        }
+
+        function configureWebhooks() {
+            alert('🔧 Webhook Configuration\n\n\nActive webhooks:\n✅ charge.succeeded\n✅ customer.subscription.created\n✅ invoice.payment_succeeded\n✅ payment_intent.created\n\n\nWould you like to add more webhook endpoints?');
+        }
+    </script>
+</body>
+</html>
