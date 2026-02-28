@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Intelligence - Stripe Empire</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .segment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .segment-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .segment-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .segment-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .segment-desc {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .cohort-table {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .cohort-grid {
+            display: grid;
+            grid-template-columns: 60px repeat(6, 1fr);
+            gap: 2px;
+            font-size: 0.9rem;
+        }
+        .cohort-header {
+            font-weight: 600;
+            text-align: center;
+            padding: 10px 5px;
+            background: #f8f9fa;
+        }
+        .cohort-cell {
+            text-align: center;
+            padding: 8px 5px;
+            border: 1px solid #e5e7eb;
+        }
+        .high-value { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .medium-value { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .low-value { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .retention-score {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .score-excellent { color: #10b981; }
+        .score-good { color: #22d3ee; }
+        .score-average { color: #f59e0b; }
+        .score-poor { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html" class="nav-item">📊 Overview</a>
+        <a href="revenue.html" class="nav-item">📈 Revenue</a>
+        <a href="customers.html" class="nav-item active">👥 Customers</a>
+        <a href="payments.html" class="nav-item">💳 Payments</a>
+        <a href="financial.html" class="nav-item">🏦 Financial</a>
+        <a href="intelligence.html" class="nav-item">🧠 Intelligence</a>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="title">👥 Customer Intelligence</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCustomers">0</div>
+                    <div class="stat-label">Total Customers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgLTV">$0</div>
+                    <div class="stat-label">Avg. Lifetime Value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="retentionRate">0%</div>
+                    <div class="stat-label">Retention Rate</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="segment-grid">
+            <div class="segment-card">
+                <div class="segment-title">🌟 Champions</div>
+                <div class="segment-value">156</div>
+                <div class="segment-desc">Recent, high-value, frequent buyers</div>
+            </div>
+            <div class="segment-card">
+                <div class="segment-title">💎 Loyal</div>
+                <div class="segment-value">89</div>
+                <div class="segment-desc">Consistent, medium-frequency buyers</div>
+            </div>
+            <div class="segment-card">
+                <div class="segment-title">📈 Potential</div>
+                <div class="segment-value">234</div>
+                <div class="segment-desc">New customers with promise</div>
+            </div>
+            <div class="segment-card">
+                <div class="segment-title">⚠️ At Risk</div>
+                <div class="segment-value">45</div>
+                <div class="segment-desc">Declining activity, low engagement</div>
+            </div>
+        </div>
+
+        <div class="cohort-table">
+            <h2 class="chart-title">📊 Customer Cohort Analysis</h2>
+            <div class="cohort-grid">
+                <div class="cohort-header">Cohort</div>
+                <div class="cohort-header">Jan</div>
+                <div class="cohort-header">Feb</div>
+                <div class="cohort-header">Mar</div>
+                <div class="cohort-header">Apr</div>
+                <div class="cohort-header">May</div>
+                <div class="cohort-header">Jun</div>
+                
+                <div class="cohort-header high-value">Jan '24</div>
+                <div class="cohort-cell high-value">100%</div>
+                <div class="cohort-cell high-value">95%</div>
+                <div class="cohort-cell medium-value">88%</div>
+                <div class="cohort-cell high-value">82%</div>
+                <div class="cohort-cell medium-value">75%</div>
+                <div class="cohort-cell low-value">68%</div>
+                
+                <div class="cohort-header high-value">Feb '24</div>
+                <div class="cohort-cell high-value">100%</div>
+                <div class="cohort-cell high-value">92%</div>
+                <div class="cohort-cell medium-value">85%</div>
+                <div class="cohort-cell high-value">79%</div>
+                <div class="cohort-cell medium-value">71%</div>
+                <div class="cohort-cell low-value">65%</div>
+                
+                <div class="cohort-header medium-value">Mar '24</div>
+                <div class="cohort-cell high-value">100%</div>
+                <div class="cohort-cell high-value">98%</div>
+                <div class="cohort-cell high-value">91%</div>
+                <div class="cohort-cell medium-value">84%</div>
+                <div class="cohort-cell medium-value">76%</div>
+                <div class="cohort-cell low-value">69%</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">🎯 Customer Lifetime Value Distribution</h2>
+                <div id="clvChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">📈 Customer Acquisition Funnel</h2>
+                <div id="acquisitionFunnelChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🔄 Retention Rate Trend</h2>
+                <div id="retentionTrendChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">📍 Geographic Distribution</h2>
+                <div id="geoChart"></div>
+            </div>
+        </div>
+
+        <div class="forecast-section">
+            <h2 class="chart-title">🧠 Churn Prediction Model</h2>
+            <div class="retention-score score-good">87.3%</div>
+            <p style="text-align: center; margin-top: 10px;">Overall Customer Retention Score</p>
+            <div id="churnPredictionChart"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading customer intelligence...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCustomerDashboard();
+        });
+
+        async function initializeCustomerDashboard() {
+            const customerData = await fetchCustomerData();
+            
+            updateCustomerMetrics(customerData);
+            createSegmentation(customerData);
+            createCohortAnalysis(customerData);
+            createCLVDistribution(customerData);
+            createAcquisitionFunnel(customerData);
+            createRetentionTrend(customerData);
+            createGeoDistribution(customerData);
+            createChurnPrediction(customerData);
+            
+            hideLoading();
+        }
+
+        async function fetchCustomerData() {
+            return {
+                totalCustomers: 524,
+                avgLTV: 432.33,
+                retentionRate: 78.5,
+                segments: {
+                    champions: 156,
+                    loyal: 89,
+                    potential: 234,
+                    atRisk: 45
+                },
+                clv: [
+                    {range: '$0-100', count: 89},
+                    {range: '$100-300', count: 156},
+                    {range: '$300-500', count: 98},
+                    {range: '$500-1000', count: 67},
+                    {range: '$1000+', count: 34}
+                ],
+                acquisition: [
+                    {stage: 'Awareness', value: 10000, conversion: 0.25},
+                    {stage: 'Interest', value: 2500, conversion: 0.40},
+                    {stage: 'Consideration', value: 1000, conversion: 0.60},
+                    {stage: 'Purchase', value: 600, conversion: 1.0}
+                ],
+                retention: [
+                    {month: 'Jan', rate: 82.5},
+                    {month: 'Feb', rate: 78.5},
+                    {month: 'Mar', rate: 80.2},
+                    {month: 'Apr', rate: 76.8},
+                    {month: 'May', rate: 74.5},
+                    {month: 'Jun', rate: 79.2}
+                ],
+                geography: [
+                    {country: 'United States', customers: 289, revenue: 45000},
+                    {country: 'United Kingdom', customers: 89, revenue: 15600},
+                    {country: 'Canada', customers: 67, revenue: 8900},
+                    {country: 'Germany', customers: 45, revenue: 6700},
+                    {country: 'Australia', customers: 34, revenue: 5400}
+                ],
+                churnPrediction: [
+                    {month: 'Mar', probability: 0.12},
+                    {month: 'Apr', probability: 0.18},
+                    {month: 'May', probability: 0.15},
+                    {month: 'Jun', probability: 0.09}
+                ]
+            };
+        }
+
+        function updateCustomerMetrics(data) {
+            document.getElementById('totalCustomers').textContent = data.totalCustomers.toLocaleString();
+            document.getElementById('avgLTV').textContent = `$${data.avgLTV.toFixed(2)}`;
+            document.getElementById('retentionRate').textContent = `${data.retentionRate.toFixed(1)}%`;
+        }
+
+        function createSegmentation(data) {
+            // Segmentation is already displayed in HTML
+        }
+
+        function createCohortAnalysis(data) {
+            // Cohort table is already displayed in HTML
+        }
+
+        function createCLVDistribution(data) {
+            const clv = data.clv;
+            
+            const trace = {
+                x: clv.map(c => c.range),
+                y: clv.map(c => c.count),
+                type: 'bar',
+                marker: {
+                    color: ['#10b981', '#22d3ee', '#f59e0b', '#ef4444'],
+                    line: {color: 'white', width: 1}
+                },
+                text: clv.map(c => c.count),
+                textposition: 'auto'
+            };
+
+            const layout = {
+                title: 'Customer Lifetime Value Distribution',
+                xaxis: {title: 'CLV Range'},
+                yaxis: {title: 'Number of Customers'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('clvChart', [trace], layout, {responsive: true});
+        }
+
+        function createAcquisitionFunnel(data) {
+            const acquisition = data.acquisition;
+            
+            const trace = {
+                x: acquisition.map(a => a.stage),
+                y: acquisition.map(a => a.value),
+                type: 'funnel',
+                marker: {
+                    color: ['#6366f1', '#22d3ee', '#10b981', '#f59e0b'],
+                    line: {color: 'white', width: 2}
+                },
+                text: acquisition.map(a => `${a.conversion * 100}%`),
+                textposition: 'inside',
+                textinfo: 'value+percent'
+            };
+
+            const layout = {
+                title: 'Customer Acquisition Funnel',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('acquisitionFunnelChart', [trace], layout, {responsive: true});
+        }
+
+        function createRetentionTrend(data) {
+            const retention = data.retention;
+            
+            const trace = {
+                x: retention.map(r => r.month),
+                y: retention.map(r => r.rate),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Retention Rate',
+                line: {color: '#10b981', width: 3},
+                marker: {
+                    color: '#10b981', 
+                    size: 8,
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.1)'
+            };
+
+            const layout = {
+                title: 'Customer Retention Trend',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Retention Rate (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('retentionTrendChart', [trace], layout, {responsive: true});
+        }
+
+        function createGeoDistribution(data) {
+            const geography = data.geography;
+            
+            const trace = {
+                type: 'scattergeo',
+                locationmode: 'country names',
+                locations: geography.map(g => g.country),
+                text: geography.map(g => `${g.country}: ${g.customers} customers`),
+                marker: {
+                    size: geography.map(g => Math.sqrt(g.customers)),
+                    color: geography.map(g => g.revenue),
+                    colorscale: 'Viridis',
+                    showscale: true,
+                    colorbar: {
+                        title: 'Revenue',
+                        thickness: 20
+                    }
+                }
+            };
+
+            const layout = {
+                title: 'Customer Geographic Distribution',
+                geo: {
+                    scope: 'world',
+                    showframe: false,
+                    showcoastlines: true,
+                    bgcolor: 'rgba(0,0,0,0)',
+                    projection: {type: 'mercator'}
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 20}
+            };
+
+            Plotly.newPlot('geoChart', [trace], layout, {responsive: true});
+        }
+
+        function createChurnPrediction(data) {
+            const churn = data.churnPrediction;
+            
+            const trace = {
+                x: churn.map(c => c.month),
+                y: churn.map(c => c.probability * 100),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Churn Probability',
+                line: {color: '#ef4444', width: 3},
+                marker: {
+                    color: '#ef4444', 
+                    size: 8,
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(239, 68, 68, 0.2)'
+            };
+
+            const layout = {
+                title: 'Churn Prediction (ML Model)',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Churn Probability (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('churnPredictionChart', [trace], layout, {responsive: true});
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
