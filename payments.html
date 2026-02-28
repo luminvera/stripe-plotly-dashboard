@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Operations - Stripe Empire</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="navigation.css">
+    <style>
+        .processing-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .processing-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .processing-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .processing-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 2;
+        }
+        .processing-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        .realtime-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .method-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .method-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .method-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #374151;
+        }
+        .method-stats {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .fraud-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ef4444;
+        }
+        .alert-high {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ef4444;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .processing-times {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .time-chart {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html" class="nav-item">📊 Overview</a>
+        <a href="revenue.html" class="nav-item">📈 Revenue</a>
+        <a href="customers.html" class="nav-item">👥 Customers</a>
+        <a href="payments.html" class="nav-item active">💳 Payments</a>
+        <a href="financial.html" class="nav-item">🏦 Financial</a>
+        <a href="intelligence.html" class="nav-item">🧠 Intelligence</a>
+    </nav>
+
+    <div class="container">
+        <header class="header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h1 class="title" style="color: white;">💳 Payment Operations Center</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="processingRate">98.7%</div>
+                    <div class="stat-label">Processing Success Rate</div>
+                    <div class="realtime-indicator"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgProcessingTime">1.2s</div>
+                    <div class="stat-label">Avg Processing Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="fraudRate">0.12%</div>
+                    <div class="stat-label">Fraud Detection Rate</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="processing-metrics">
+            <div class="processing-card">
+                <div class="processing-value" id="dailyVolume">$45.8K</div>
+                <div class="processing-label">Daily Processing Volume</div>
+            </div>
+            <div class="processing-card">
+                <div class="processing-value" id="peakHour">2:00 PM</div>
+                <div class="processing-label">Peak Processing Hour</div>
+            </div>
+            <div class="processing-card">
+                <div class="processing-value" id="apiCalls">15.2K</div>
+                <div class="processing-label">API Calls Today</div>
+            </div>
+            <div class="processing-card">
+                <div class="processing-value" id="errorRate">1.3%</div>
+                <div class="processing-label">Error Rate</div>
+            </div>
+        </div>
+
+        <div class="method-grid">
+            <div class="method-card">
+                <div class="method-icon">💳</div>
+                <div class="method-name">Credit Card</div>
+                <div class="method-stats">
+                    <div><strong>89%</strong></div>
+                    <div>Processing Success</div>
+                    <div><strong>1.1s</strong></div>
+                    <div>Avg Time</div>
+                </div>
+            </div>
+            <div class="method-card">
+                <div class="method-icon">🏦</div>
+                <div class="method-name">Bank Transfer</div>
+                <div class="method-stats">
+                    <div><strong>95%</strong></div>
+                    <div>Processing Success</div>
+                    <div><strong>2.3s</strong></div>
+                    <div>Avg Time</div>
+                </div>
+            </div>
+            <div class="method-card">
+                <div class="method-icon">📱</div>
+                <div class="method-name">Digital Wallet</div>
+                <div class="method-stats">
+                    <div><strong>76%</strong></div>
+                    <div>Processing Success</div>
+                    <div><strong>0.8s</strong></div>
+                    <div>Avg Time</div>
+                </div>
+            </div>
+            <div class="method-card">
+                <div class="method-icon">🔄</div>
+                <div class="method-name">Recurring Billing</div>
+                <div class="method-stats">
+                    <div><strong>99%</strong></div>
+                    <div>Processing Success</div>
+                    <div><strong>0.5s</strong></div>
+                    <div>Avg Time</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fraud-section">
+            <h2 class="chart-title">⚠️ Fraud Detection & Risk Management</h2>
+            <div class="alert-high">
+                <span>⚠️</span>
+                <div>
+                    <strong>High-Risk Transaction Detected</strong><br>
+                    Amount: $2,345 from new device location<br>
+                    Risk Score: 87/100<br>
+                    <span style="color: #ef4444; font-weight: 600;">Action: Manual review required</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🔒 Real-time Fraud Monitoring</h2>
+                <div id="fraudChart"></div>
+            </div>
+        </div>
+
+        <div class="processing-times">
+            <h2 class="chart-title">⏱️ Processing Time Analytics</h2>
+            <div class="time-chart">
+                <canvas id="processingTimeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">📈 Transaction Volume Trends</h2>
+                <div id="volumeChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🌍 Geographic Processing Distribution</h2>
+                <div id="geoProcessingChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🔧 API Performance Metrics</h2>
+                <div id="apiPerformanceChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">⚡ Processing Pipeline</h2>
+                <div id="processingPipelineChart"></div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Initializing payment operations...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePaymentDashboard();
+        });
+
+        async function initializePaymentDashboard() {
+            const paymentData = await fetchPaymentData();
+            
+            updatePaymentMetrics(paymentData);
+            createProcessingMetrics(paymentData);
+            createPaymentMethods(paymentData);
+            createFraudDetection(paymentData);
+            createProcessingTimes(paymentData);
+            createVolumeTrends(paymentData);
+            createGeoProcessing(paymentData);
+            createAPIPerformance(paymentData);
+            createProcessingPipeline(paymentData);
+            
+            // Start real-time updates
+            startRealTimeUpdates();
+            
+            hideLoading();
+        }
+
+        async function fetchPaymentData() {
+            // Simulated real-time payment operations data
+            return {
+                processingRate: 98.7,
+                avgProcessingTime: 1.2,
+                fraudRate: 0.12,
+                dailyVolume: 45800,
+                peakHour: '14:00',
+                apiCalls: 15200,
+                errorRate: 1.3,
+                methods: [
+                    {type: 'Credit Card', success: 89, avgTime: 1.1, volume: 32000},
+                    {type: 'Bank Transfer', success: 95, avgTime: 2.3, volume: 8500},
+                    {type: 'Digital Wallet', success: 76, avgTime: 0.8, volume: 5300}
+                ],
+                fraud: [
+                    {time: '2025-02-28T18:30:00Z', amount: 2345, risk: 87, type: 'Amount Anomaly'},
+                    {time: '2025-02-28T16:45:00Z', amount: 890, risk: 45, type: 'Location Anomaly'},
+                    {time: '2025-02-28T14:20:00Z', amount: 450, risk: 23, type: 'Velocity Anomaly'},
+                    {time: '2025-02-28T12:15:00Z', amount: 120, risk: 12, type: 'Pattern Deviation'}
+                ],
+                processingTimes: [
+                    {hour: '00:00', time: 0.8},
+                    {hour: '02:00', time: 0.9},
+                    {hour: '04:00', time: 1.1},
+                    {hour: '06:00', time: 0.7},
+                    {hour: '08:00', time: 0.6},
+                    {hour: '10:00', time: 0.8},
+                    {hour: '12:00', time: 1.2},
+                    {hour: '14:00', time: 1.8},
+                    {hour: '16:00', time: 2.1},
+                    {hour: '18:00', time: 1.6},
+                    {hour: '20:00', time: 1.4},
+                    {hour: '22:00', time: 0.9}
+                ],
+                geoProcessing: [
+                    {country: 'United States', volume: 25000, success: 98.5},
+                    {country: 'United Kingdom', volume: 8500, success: 97.2},
+                    {country: 'Canada', volume: 6200, success: 99.1},
+                    {country: 'Australia', volume: 4100, success: 96.8},
+                    {country: 'Germany', volume: 2000, success: 98.9}
+                ],
+                apiMetrics: [
+                    {metric: 'Response Time', value: 120, unit: 'ms'},
+                    {metric: 'Throughput', value: 450, unit: 'req/s'},
+                    {metric: 'Error Rate', value: 1.3, unit: '%'},
+                    {metric: 'Availability', value: 99.87, unit: '%'}
+                ]
+            };
+        }
+
+        function updatePaymentMetrics(data) {
+            document.getElementById('processingRate').textContent = `${data.processingRate.toFixed(1)}%`;
+            document.getElementById('avgProcessingTime').textContent = `${data.avgProcessingTime.toFixed(1)}s`;
+            document.getElementById('fraudRate').textContent = `${data.fraudRate.toFixed(2)}%`;
+        }
+
+        function createProcessingMetrics(data) {
+            document.getElementById('dailyVolume').textContent = `$${(data.dailyVolume / 1000).toFixed(1)}K`;
+            document.getElementById('peakHour').textContent = data.peakHour;
+            document.getElementById('apiCalls').textContent = `${(data.apiCalls / 1000).toFixed(1)}K`;
+            document.getElementById('errorRate').textContent = `${data.errorRate.toFixed(1)}%`;
+        }
+
+        function createPaymentMethods(data) {
+            // Payment methods are displayed in HTML
+        }
+
+        function createFraudDetection(data) {
+            const fraud = data.fraud;
+            
+            const riskTrace = {
+                x: fraud.map(f => new Date(f.time)),
+                y: fraud.map(f => f.risk),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Fraud Risk Score',
+                line: {color: '#ef4444', width: 2},
+                marker: {
+                    color: fraud.map(f => {
+                        if (f.risk > 70) return '#ef4444';
+                        if (f.risk > 40) return '#f59e0b';
+                        return '#10b981';
+                    }),
+                    size: 8,
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(239, 68, 68, 0.1)'
+            };
+
+            const thresholdLine = {
+                x: [new Date('2025-01-01'), new Date('2025-12-31')],
+                y: [70, 70],
+                type: 'scatter',
+                mode: 'lines',
+                line: {color: '#f59e0b', width: 2, dash: 'dash'},
+                showlegend: false,
+                hoverinfo: 'none'
+            };
+
+            const layout = {
+                title: 'Real-time Fraud Risk Monitoring',
+                xaxis: {title: 'Time'},
+                yaxis: {title: 'Risk Score (0-100)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('fraudChart', [riskTrace, thresholdLine], layout, {responsive: true});
+        }
+
+        function createProcessingTimes(data) {
+            const times = data.processingTimes;
+            
+            new Chart(document.getElementById('processingTimeChart'), {
+                type: 'line',
+                data: {
+                    labels: times.map(t => t.hour),
+                    datasets: [{
+                        label: 'Processing Time',
+                        data: times.map(t => t.time),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Processing Time (seconds)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createVolumeTrends(data) {
+            const volume = [
+                {date: '2025-02-24', volume: 38000},
+                {date: '2025-02-25', volume: 42000},
+                {date: '2025-02-26', volume: 51000},
+                {date: '2025-02-27', volume: 45800},
+                {date: '2025-02-28', volume: 48900}
+            ];
+            
+            const trace = {
+                x: volume.map(v => v.date),
+                y: volume.map(v => v.volume),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Transaction Volume',
+                line: {color: '#22d3ee', width: 3},
+                marker: {
+                    color: '#22d3ee', 
+                    size: 8,
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(34, 211, 238, 0.1)'
+            };
+
+            const layout = {
+                title: 'Daily Transaction Volume',
+                xaxis: {title: 'Date'},
+                yaxis: {title: 'Volume ($)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('volumeChart', [trace], layout, {responsive: true});
+        }
+
+        function createGeoProcessing(data) {
+            const geo = data.geoProcessing;
+            
+            const trace = {
+                type: 'scattergeo',
+                locationmode: 'country names',
+                locations: geo.map(g => g.country),
+                text: geo.map(g => `${g.country}: ${g.success.toFixed(1)}% success`),
+                marker: {
+                    size: geo.map(g => Math.sqrt(g.volume / 100)),
+                    color: geo.map(g => g.success),
+                    colorscale: 'RdYlGn',
+                    showscale: true,
+                    colorbar: {
+                        title: 'Success Rate',
+                        thickness: 20
+                    }
+                }
+            };
+
+            const layout = {
+                title: 'Geographic Processing Distribution',
+                geo: {
+                    scope: 'world',
+                    showframe: false,
+                    showcoastlines: true,
+                    bgcolor: 'rgba(0,0,0,0)',
+                    projection: {type: 'mercator'}
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 20}
+            };
+
+            Plotly.newPlot('geoProcessingChart', [trace], layout, {responsive: true});
+        }
+
+        function createAPIPerformance(data) {
+            const metrics = data.apiMetrics;
+            
+            const trace = {
+                x: metrics.map(m => m.metric),
+                y: metrics.map(m => m.value),
+                type: 'bar',
+                marker: {
+                    color: metrics.map(m => {
+                        if (m.unit === 'ms' && m.value > 200) return '#ef4444';
+                        if (m.unit === '%' && m.value < 95) return '#f59e0b';
+                        return '#10b981';
+                    }),
+                    line: {color: 'white', width: 1}
+                },
+                text: metrics.map(m => `${m.value}${m.unit}`),
+                textposition: 'auto'
+            };
+
+            const layout = {
+                title: 'API Performance Metrics',
+                xaxis: {title: 'Metric'},
+                yaxis: {title: 'Value'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('apiPerformanceChart', [trace], layout, {responsive: true});
+        }
+
+        function createProcessingPipeline(data) {
+            const pipeline = [
+                {stage: 'Authentication', avgTime: 0.2, volume: 15200},
+                {stage: 'Validation', avgTime: 0.3, volume: 14800},
+                {stage: 'Processing', avgTime: 0.8, volume: 14200},
+                {stage: 'Completion', avgTime: 0.1, volume: 14000}
+            ];
+            
+            const timeTrace = {
+                x: pipeline.map(p => p.stage),
+                y: pipeline.map(p => p.avgTime),
+                type: 'bar',
+                name: 'Avg Time',
+                marker: {color: '#6366f1', line: {color: 'white', width: 2}}
+            };
+
+            const volumeTrace = {
+                x: pipeline.map(p => p.stage),
+                y: pipeline.map(p => p.volume),
+                type: 'bar',
+                name: 'Volume',
+                marker: {color: '#22d3ee', line: {color: 'white', width: 2}}
+            };
+
+            const layout = {
+                title: 'Processing Pipeline Performance',
+                xaxis: {title: 'Stage'},
+                yaxis: {title: 'Value'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                barmode: 'group',
+                showlegend: true
+            };
+
+            Plotly.newPlot('processingPipelineChart', [timeTrace, volumeTrace], layout, {responsive: true});
+        }
+
+        function startRealTimeUpdates() {
+            // Simulate real-time data updates
+            setInterval(async () => {
+                const freshData = await fetchPaymentData();
+                updatePaymentMetrics(freshData);
+            }, 5000); // Update every 5 seconds
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
