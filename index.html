@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe Transaction Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">💰 Stripe Transaction Dashboard</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRevenue">$0</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTransactions">0</div>
+                    <div class="stat-label">Transactions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgAmount">$0</div>
+                    <div class="stat-label">Average Amount</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn btn-secondary" onclick="toggleTheme()">🌓 Toggle Theme</button>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">📈 Revenue Timeline</h2>
+                <div id="revenueChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">💳 Payment Methods</h2>
+                <div id="paymentChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">🌍 Currency Distribution</h2>
+                <div id="currencyChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">👥 Customer Analytics</h2>
+                <div id="customerChart"></div>
+            </div>
+        </div>
+
+        <div class="data-table-section">
+            <h2 class="chart-title">📋 Transaction Details</h2>
+            <div class="table-container">
+                <table id="transactionTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Currency</th>
+                            <th>Customer</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading Stripe data...</p>
+        </div>
+
+        <div class="error" id="error" style="display: none;">
+            <p>Failed to load data. Please try again.</p>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
