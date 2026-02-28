@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Performance - Stripe Empire</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="navigation.css">
+    <style>
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .financial-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .financial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .kpi-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #374151;
+        }
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        .kpi-subtitle {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            margin-left: auto;
+            margin-right: 20px;
+        }
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .trend-up {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        .trend-down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .profit-loss {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .profit {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        .loss {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html" class="nav-item">📊 Overview</a>
+        <a href="revenue.html" class="nav-item">📈 Revenue</a>
+        <a href="customers.html" class="nav-item">👥 Customers</a>
+        <a href="payments.html" class="nav-item active">💳 Payments</a>
+        <a href="financial.html" class="nav-item">🏦 Financial</a>
+        <a href="intelligence.html" class="nav-item">🧠 Intelligence</a>
+    </nav>
+
+    <div class="container">
+        <header class="header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h1 class="title" style="color: white;">🏦 Financial Performance Center</h1>
+        </header>
+
+        <div class="financial-grid">
+            <div class="financial-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">Net Revenue</div>
+                    <div class="kpi-value">$24,567</div>
+                </div>
+                <div class="kpi-subtitle">Total revenue after all deductions</div>
+                <div class="trend-indicator trend-up">
+                    <span>↑</span> 18.2% vs last quarter
+                </div>
+            </div>
+            
+            <div class="financial-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">Gross Margin</div>
+                    <div class="kpi-value">73.4%</div>
+                </div>
+                <div class="kpi-subtitle">Revenue after cost of goods sold</div>
+                <div class="trend-indicator trend-up">
+                    <span>↑</span> 2.1% vs last quarter
+                </div>
+            </div>
+            
+            <div class="financial-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">Operating Expenses</div>
+                    <div class="kpi-value">$6,523</div>
+                </div>
+                <div class="kpi-subtitle">Total operational costs this period</div>
+                <div class="trend-indicator trend-down">
+                    <span>↓</span> 5.3% vs last quarter
+                </div>
+            </div>
+            
+            <div class="financial-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">EBITDA</div>
+                    <div class="kpi-value">$8,234</div>
+                </div>
+                <div class="kpi-subtitle">Earnings before interest, tax, depreciation</div>
+                <div class="trend-indicator trend-up">
+                    <span>↑</span> 12.7% vs last quarter
+                </div>
+            </div>
+        </div>
+
+        <div class="forecast-section">
+            <h2 class="chart-title">📊 Profit & Loss Statement</h2>
+            <div class="profit-loss">
+                <div class="profit">
+                    <h3>Revenue</h3>
+                    <div class="kpi-value">$30,090</div>
+                    <div class="kpi-subtitle">Total gross revenue</div>
+                </div>
+                <div class="loss">
+                    <h3>Expenses</h3>
+                    <div class="kpi-value" style="color: #ef4444;">$5,523</div>
+                    <div class="kpi-subtitle">Total operating expenses</div>
+                </div>
+            </div>
+            <div class="profit-loss">
+                <div class="profit">
+                    <h3>Gross Profit</h3>
+                    <div class="kpi-value">$24,567</div>
+                    <div class="kpi-subtitle">Revenue minus expenses</div>
+                </div>
+                <div class="profit">
+                    <h3>Net Profit</h3>
+                    <div class="kpi-value">$18,045</div>
+                    <div class="kpi-subtitle">After all deductions</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">📈 Monthly Burn Rate</h2>
+                <div id="burnRateChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">💰 Cash Flow Analysis</h2>
+                <div id="cashFlowChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">📊 Cost Breakdown</h2>
+                <div id="costBreakdownChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🎯 Profit Margins by Service</h2>
+                <div id="profitMarginsChart"></div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Calculating financial metrics...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFinancialDashboard();
+        });
+
+        async function initializeFinancialDashboard() {
+            const financialData = await fetchFinancialData();
+            
+            updateFinancialMetrics(financialData);
+            createBurnRateChart(financialData);
+            createCashFlowChart(financialData);
+            createCostBreakdownChart(financialData);
+            createProfitMarginsChart(financialData);
+            
+            hideLoading();
+        }
+
+        async function fetchFinancialData() {
+            // Simulated comprehensive financial data
+            return {
+                netRevenue: 24567,
+                grossMargin: 73.4,
+                operatingExpenses: 6523,
+                ebitda: 8234,
+                grossRevenue: 30090,
+                expenses: 5523,
+                grossProfit: 24567,
+                netProfit: 18045,
+                burnRate: {
+                    monthly: 12300,
+                    runway: 18,
+                    burnRate: 8.9
+                },
+                cashFlow: [
+                    {month: 'Oct', inflow: 25000, outflow: 18500, net: 6500},
+                    {month: 'Nov', inflow: 28000, outflow: 22000, net: 6000},
+                    {month: 'Dec', inflow: 30090, outflow: 25500, net: 4540},
+                    {month: 'Jan', inflow: 29800, outflow: 23400, net: 6400},
+                    {month: 'Feb', inflow: 26700, outflow: 19800, net: 6900}
+                ],
+                costBreakdown: [
+                    {category: 'Salaries', amount: 2500, color: '#ef4444'},
+                    {category: 'Marketing', amount: 1200, color: '#f59e0b'},
+                    {category: 'Infrastructure', amount: 800, color: '#fbbf24'},
+                    {category: 'Operations', amount: 600, color: '#10b981'},
+                    {category: 'Other', amount: 423, color: '#6366f1'}
+                ],
+                profitMargins: [
+                    {service: 'SaaS', margin: 82.3, revenue: 15600},
+                    {service: 'Services', margin: 68.9, revenue: 8900},
+                    {service: 'Products', margin: 45.2, revenue: 5590}
+                ]
+            };
+        }
+
+        function updateFinancialMetrics(data) {
+            document.querySelector('.financial-card:nth-child(1) .kpi-value').textContent = `$${data.netRevenue.toLocaleString()}`;
+            document.querySelector('.financial-card:nth-child(2) .kpi-value').textContent = `${data.grossMargin.toFixed(1)}%`;
+            document.querySelector('.financial-card:nth-child(3) .kpi-value').textContent = `$${data.operatingExpenses.toLocaleString()}`;
+            document.querySelector('.financial-card:nth-child(4) .kpi-value').textContent = `$${data.ebitda.toLocaleString()}`;
+        }
+
+        function createBurnRateChart(data) {
+            const burn = data.burnRate;
+            
+            const runwayTrace = {
+                x: [1, 2, 3, 4, 5, 6],
+                y: [18, 17, 16, 15, 14, 13],
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Runway (months)',
+                line: {color: '#10b981', width: 3},
+                marker: {
+                    color: '#10b981', size: 10,
+                    symbol: 'circle',
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.1)'
+            };
+
+            const burnTrace = {
+                x: [1, 2, 3, 4, 5, 6],
+                y: [burn.monthly * 0.9, burn.monthly * 0.8, burn.monthly * 0.85, burn.monthly * 0.8, burn.monthly * 0.75, burn.monthly * 0.7],
+                type: 'bar',
+                name: 'Monthly Burn',
+                marker: {color: '#ef4444', line: {color: 'white', width: 2}}
+            };
+
+            const layout = {
+                title: 'Monthly Burn Rate & Runway Analysis',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Amount ($)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t:  rate: 20, r: 20, b: 40, l: 60},
+                barmode: 'group',
+                showlegend: true
+            };
+
+            Plotly.newPlot('burnRateChart', [runwayTrace, burnTrace], layout, {responsive: true});
+        }
+
+        function createCashFlowChart(data) {
+            const cashFlow = data.cashFlow;
+            
+            const inflowTrace = {
+                x: cashFlow.map(c => c.month),
+                y: cashFlow.map(c => c.inflow),
+                type: 'bar',
+                name: 'Inflow',
+                marker: {color: '#10b981'}
+            };
+
+            const outflowTrace = {
+                x: cashFlow.map(c => c.month),
+                y: cashFlow.map(c => c.outflow),
+                type: 'bar',
+                name: 'Outflow',
+                marker: {color: '#ef4444'}
+            };
+
+            const netTrace = {
+                x: cashFlow.map(c => c.month),
+                y: cashFlow.map(c => c.net),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Net Cash Flow',
+                line: {color: '#6366f1', width: 3},
+                marker: {
+                    color: '#6366f1', 
+                    size: cashFlow.map(c => Math.abs(c.net) / 100),
+                    symbol: c.net > 0 ? 'triangle-up' : 'triangle-down',
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(99, 102, 241, 0.1)'
+            };
+
+            const layout = {
+                title: 'Monthly Cash Flow Analysis',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Amount ($)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                barmode: 'group',
+                showlegend: true
+            };
+
+            Plotly.newPlot('cashFlowChart', [inflowTrace, outflowTrace, netTrace], layout, {responsive: true});
+        }
+
+        function createCostBreakdownChart(data) {
+            const costs = data.costBreakdown;
+            
+            const trace = {
+                values: costs.map(c => c.amount),
+                labels: costs.map(c => c.category),
+                marker: {
+                    colors: costs.map(c => c.color)
+                },
+                textinfo: 'label+percent+value',
+                textposition: 'outside',
+                type: 'pie',
+                hole: 0.4
+            };
+
+            const layout = {
+                title: 'Operating Cost Breakdown',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 20, l: 20}
+            };
+
+            Plotly.newPlot('costBreakdownChart', [trace], layout, {responsive: true});
+        }
+
+        function createProfitMarginsChart(data) {
+            const margins = data.profitMargins;
+            
+            const revenueTrace = {
+                x: margins.map(m => m.service),
+                y: margins.map(m => m.revenue),
+                type: 'bar',
+                name: 'Revenue',
+                marker: {color: '#6366f1', line: {color: 'white', width: 2}}
+            };
+
+            const marginTrace = {
+                x: margins.map(m => m.service),
+                y: margins.map(m => m.margin),
+                type: 'bar',
+                name: 'Margin %',
+                marker: {color: '#10b981', line: {color: 'white', width: 2}}
+            };
+
+            const layout = {
+                title: 'Profit Margins by Service Line',
+                xaxis: {title: 'Service'},
+                yaxis: {title: 'Margin (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                barmode: 'group',
+                showlegend: true
+            };
+
+            Plotly.newPlot('profitMarginsChart', [revenueTrace, marginTrace], layout, {responsive: true});
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
