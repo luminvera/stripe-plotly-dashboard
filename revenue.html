@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Analytics - Stripe Empire</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 2;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        .metric-change {
+            font-size: 0.85rem;
+            margin-top: 10px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .positive {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .forecast-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background: #6366f1;
+            color: white;
+        }
+        .tab-button:hover:not(.active) {
+            background: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html" class="nav-item">📊 Overview</a>
+        <a href="revenue.html" class="nav-item active">📈 Revenue</a>
+        <a href="customers.html" class="nav-item">👥 Customers</a>
+        <a href="payments.html" class="nav-item">💳 Payments</a>
+        <a href="financial.html" class="nav-item">🏦 Financial</a>
+        <a href="intelligence.html" class="nav-item">🧠 Intelligence</a>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="title">📈 Revenue Analytics</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="monthlyRevenue">$0</div>
+                    <div class="stat-label">Monthly Revenue</div>
+                    <div class="metric-change positive">↑ 23.5%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="yearlyRevenue">$0</div>
+                    <div class="stat-label">Yearly Revenue</div>
+                    <div class="metric-change positive">↑ 18.2%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="revenueGrowth">0%</div>
+                    <div class="stat-label">Growth Rate</div>
+                    <div class="metric-change positive">↑ 5.7%</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="mrr">$0</div>
+                <div class="metric-label">Monthly Recurring Revenue</div>
+                <div class="metric-change positive">↑ 12.3%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="arr">$0</div>
+                <div class="metric-label">Annual Run Rate</div>
+                <div class="metric-change positive">↑ 15.8%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="ltv">$0</div>
+                <div class="metric-label">Customer Lifetime Value</div>
+                <div class="metric-change negative">↓ 2.1%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="churnRate">0%</div>
+                <div class="metric-label">Churn Rate</div>
+                <div class="metric-change positive">↓ 0.8%</div>
+            </div>
+        </div>
+
+        <div class="forecast-section">
+            <h2 class="chart-title">🔮 Revenue Forecast (ML-Powered)</h2>
+            <div class="chart-tabs">
+                <button class="tab-button active" onclick="showForecast('revenue')">Revenue</button>
+                <button class="tab-button" onclick="showForecast('customers')">Customers</button>
+                <button class="tab-button" onclick="showForecast('growth')">Growth</button>
+            </div>
+            <div id="forecastChart"></div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">📊 Revenue Breakdown</h2>
+                <div id="revenueBreakdownChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🎯 Revenue Goals</h2>
+                <div id="revenueGoalsChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">📅 Monthly Trend</h2>
+                <div id="monthlyTrendChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">🔥 Revenue Velocity</h2>
+                <div id="revenueVelocityChart"></div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading advanced analytics...</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize revenue analytics dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRevenueDashboard();
+        });
+
+        async function initializeRevenueDashboard() {
+            // Load revenue data
+            const revenueData = await fetchRevenueData();
+            
+            // Update metrics
+            updateRevenueMetrics(revenueData);
+            
+            // Create charts
+            createForecastChart(revenueData);
+            createRevenueBreakdown(revenueData);
+            createRevenueGoals(revenueData);
+            createMonthlyTrend(revenueData);
+            createRevenueVelocity(revenueData);
+            
+            hideLoading();
+        }
+
+        async function fetchRevenueData() {
+            // Simulated advanced revenue analytics data
+            return {
+                monthly: 1297.00,
+                yearly: 15564.00,
+                growth: 23.5,
+                mrr: 899.00,
+                arr: 10788.00,
+                ltv: 432.33,
+                churn: 2.1,
+                forecast: [
+                    {month: 'Jan', actual: 899, predicted: 920, confidence: 0.85},
+                    {month: 'Feb', actual: 1297, predicted: 1250, confidence: 0.88},
+                    {month: 'Mar', predicted: 1450, confidence: 0.82},
+                    {month: 'Apr', predicted: 1680, confidence: 0.79},
+                    {month: 'May', predicted: 1890, confidence: 0.76},
+                    {month: 'Jun', predicted: 2100, confidence: 0.74}
+                ],
+                breakdown: [
+                    {category: 'Subscriptions', amount: 899, color: '#6366f1'},
+                    {category: 'One-time', amount: 398, color: '#22d3ee'},
+                    {category: 'Upgrades', amount: 156, color: '#10b981'},
+                    {category: 'Add-ons', amount: 89, color: '#f59e0b'}
+                ],
+                goals: [
+                    {period: 'Q1', target: 3000, current: 2196, percentage: 73},
+                    {period: 'Q2', target: 4500, current: 0, percentage: 0},
+                    {period: 'Q3', target: 6000, current: 0, percentage: 0},
+                    {period: 'Q4', target: 8000, current: 0, percentage: 0}
+                ],
+                monthly: [
+                    {month: 'Oct', revenue: 450},
+                    {month: 'Nov', revenue: 620},
+                    {month: 'Dec', revenue: 899},
+                    {month: 'Jan', revenue: 1297},
+                    {month: 'Feb', revenue: 899}
+                ]
+            };
+        }
+
+        function updateRevenueMetrics(data) {
+            document.getElementById('monthlyRevenue').textContent = `$${data.monthly.toFixed(2)}`;
+            document.getElementById('yearlyRevenue').textContent = `$${data.yearly.toFixed(2)}`;
+            document.getElementById('revenueGrowth').textContent = `${data.growth.toFixed(1)}%`;
+            document.getElementById('mrr').textContent = `$${data.mrr.toFixed(2)}`;
+            document.getElementById('arr').textContent = `$${data.arr.toFixed(2)}`;
+            document.getElementById('ltv').textContent = `$${data.ltv.toFixed(2)}`;
+            document.getElementById('churnRate').textContent = `${data.churn.toFixed(1)}%`;
+        }
+
+        function createForecastChart(data) {
+            const forecast = data.forecast;
+            
+            const actualTrace = {
+                x: forecast.map(f => f.month),
+                y: forecast.map(f => f.actual || null),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Actual Revenue',
+                line: {color: '#10b981', width: 3},
+                marker: {color: '#10b981', size: 8}
+            };
+
+            const predictedTrace = {
+                x: forecast.map(f => f.month),
+                y: forecast.map(f => f.predicted),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'ML Prediction',
+                line: {color: '#6366f1', width: 3, dash: 'dash'},
+                marker: {color: '#6366f1', size: 6, symbol: 'diamond'},
+                fill: 'tonexty',
+                fillcolor: 'rgba(99, 102, 241, 0.1)'
+            };
+
+            const confidenceTrace = {
+                x: forecast.map(f => f.month),
+                y: forecast.map(f => f.predicted * (1 - f.confidence)),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Confidence Band',
+                line: {color: 'rgba(99, 102, 241, 0.3)', width: 0},
+                fill: 'tonexty',
+                fillcolor: 'rgba(99, 102, 241, 0.1)'
+            };
+
+            const upperConfidenceTrace = {
+                x: forecast.map(f => f.month),
+                y: forecast.map(f => f.predicted * (1 + f.confidence)),
+                type: 'scatter',
+                mode: 'lines',
+                line: {color: 'rgba(99, 102, 241, 0.3)', width: 0},
+                fill: 'tonexty',
+                fillcolor: 'rgba(99, 102, 241, 0.1)'
+            };
+
+            const layout = {
+                title: 'Revenue Forecast with Confidence Intervals',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Revenue ($)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 50, r: 20, b: 40, l: 60},
+                showlegend: true,
+                hovermode: 'x unified'
+            };
+
+            Plotly.newPlot('forecastChart', [actualTrace, predictedTrace, confidenceTrace, upperConfidenceTrace], layout, {responsive: true});
+        }
+
+        function createRevenueBreakdown(data) {
+            const breakdown = data.breakdown;
+            
+            const trace = {
+                values: breakdown.map(b => b.amount),
+                labels: breakdown.map(b => b.category),
+                marker: {
+                    colors: breakdown.map(b => b.color)
+                },
+                textinfo: 'label+percent+value',
+                textposition: 'outside',
+                type: 'pie'
+            };
+
+            const layout = {
+                title: 'Revenue by Category',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 20, l: 20}
+            };
+
+            Plotly.newPlot('revenueBreakdownChart', [trace], layout, {responsive: true});
+        }
+
+        function createRevenueGoals(data) {
+            const goals = data.goals;
+            
+            const actualTrace = {
+                x: goals.map(g => g.period),
+                y: goals.map(g => g.current),
+                type: 'bar',
+                name: 'Current',
+                marker: {color: '#10b981'},
+                text: goals.map(g => `$${g.current}`),
+                textposition: 'auto'
+            };
+
+            const targetTrace = {
+                x: goals.map(g => g.period),
+                y: goals.map(g => g.target),
+                type: 'bar',
+                name: 'Target',
+                marker: {color: '#e5e7eb', opacity: 0.5},
+                text: goals.map(g => `$${g.target}`),
+                textposition: 'auto'
+            };
+
+            const layout = {
+                title: 'Revenue Goals vs Actual',
+                xaxis: {title: 'Period'},
+                yaxis: {title: 'Revenue ($)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                barmode: 'group',
+                showlegend: true
+            };
+
+            Plotly.newPlot('revenueGoalsChart', [actualTrace, targetTrace], layout, {responsive: true});
+        }
+
+        function createMonthlyTrend(data) {
+            const monthly = data.monthly;
+            
+            const trace = {
+                x: monthly.map(m => m.month),
+                y: monthly.map(m => m.revenue),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Monthly Revenue',
+                line: {color: '#6366f1', width: 3},
+                marker: {
+                    color: '#6366f1', 
+                    size: monthly.map(m => m.revenue > 1000 ? 12 : 8),
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(99, 102, 241, 0.1)'
+            };
+
+            const layout = {
+                title: 'Monthly Revenue Trend',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Revenue ($)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('monthlyTrendChart', [trace], layout, {responsive: true});
+        }
+
+        function createRevenueVelocity(data) {
+            const velocity = [
+                {month: 'Jan', rate: 0.45},
+                {month: 'Feb', rate: 0.52},
+                {month: 'Mar', rate: 0.61},
+                {month: 'Apr', rate: 0.58},
+                {month: 'May', rate: 0.72},
+                {month: 'Jun', rate: 0.68}
+            ];
+            
+            const trace = {
+                x: velocity.map(v => v.month),
+                y: velocity.map(v => v.rate),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Revenue Velocity',
+                line: {color: '#f59e0b', width: 4},
+                marker: {
+                    color: '#f59e0b', 
+                    size: 10,
+                    symbol: 'circle',
+                    line: {color: 'white', width: 2}
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(245, 158, 11, 0.2)'
+            };
+
+            const layout = {
+                title: 'Revenue Velocity (Rate/Day)',
+                xaxis: {title: 'Month'},
+                yaxis: {title: 'Revenue Rate'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('revenueVelocityChart', [trace], layout, {responsive: true});
+        }
+
+        function showForecast(type) {
+            // Update forecast chart based on selected type
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Refresh chart with new data type
+            initializeRevenueDashboard();
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
