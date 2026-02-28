@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligence Hub - Stripe Empire</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .ai-card {
+            background: linear-gradient(135deg, #1e293b 0%, #2d3748 100%);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        .ai-title {
+            color: #6366f1;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ai-metric {
+            color: white;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .ai-desc {
+            color: #9ca3af;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .ai-confidence {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .high-confidence {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        .medium-confidence {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+        .low-confidence {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+            100% { transform: scale(1); opacity: 0.7; }
+        }
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .model-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+        }
+        .model-accuracy {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .model-accuracy.excellent { color: #10b981; }
+        .model-accuracy.good { color: #22d3ee; }
+        .model-accuracy.average { color: #f59e0b; }
+        .prediction-list {
+            list-style: none;
+            padding: 0;
+        }
+        .prediction-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #6366f1;
+        }
+        .prediction-risk.high {
+            border-left-color: #ef4444;
+        }
+        .prediction-risk.medium {
+            border-left-color: #f59e0b;
+        }
+        .prediction-risk.low {
+            border-left-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html" class="nav-item">📊 Overview</a>
+        <a href="revenue.html" class="nav-item">📈 Revenue</a>
+        <a href="customers.html" class="nav-item">👥 Customers</a>
+        <a href="payments.html" class="nav-item">💳 Payments</a>
+        <a href="financial.html" class="nav-item">🏦 Financial</a>
+        <a href="intelligence.html" class="nav-item active">🧠 Intelligence</a>
+    </nav>
+
+    <div class="container">
+        <header class="header" style="background: linear-gradient(135deg, #1e293b 0%, #2d3748 100%);">
+            <h1 class="title" style="color: white;">🧠 AI Intelligence Hub</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="aiInsights">0</div>
+                    <div class="stat-label">AI Insights Generated</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="predictionsAccuracy">0%</div>
+                    <div class="stat-label">Model Accuracy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="anomalies">0</div>
+                    <div class="stat-label">Anomalies Detected</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="ai-grid">
+            <div class="ai-card">
+                <div class="ai-title">🔮 <span style="color: #22d3ee;">Revenue Forecast</span></div>
+                <div class="ai-metric">$18.5K</div>
+                <div class="ai-desc">ML-powered prediction for next quarter with 94% confidence. Based on historical patterns, seasonal trends, and market indicators.</div>
+                <div class="ai-confidence high-confidence">94% Confidence</div>
+            </div>
+            <div class="ai-card">
+                <div class="ai-title">⚠️ <span style="color: #f59e0b;">Churn Risk</span></div>
+                <div class="ai-metric">23%</div>
+                <div class="ai-desc">Customers at risk of churning in next 30 days. Early intervention can save $4.2K in lost revenue.</div>
+                <div class="ai-confidence medium-confidence">76% Confidence</div>
+            </div>
+            <div class="ai-card">
+                <div class="ai-title">🎯 <span style="color: #10b981;">Growth Opportunities</span></div>
+                <div class="ai-metric">156</div>
+                <div class="ai-desc">High-potential customers identified for upsell campaigns. Average conversion rate: 34% and potential $23.5K additional revenue.</div>
+                <div class="ai-confidence high-confidence">89% Confidence</div>
+            </div>
+        </div>
+
+        <div class="model-grid">
+            <div class="model-card">
+                <h3 class="chart-title">🤖 Churn Prediction Model</h3>
+                <div class="model-accuracy good">87.3%</div>
+                <p style="text-align: center; color: #6b7280; margin-bottom: 15px;">Accuracy on validation set</p>
+                <div class="chart-container">
+                    <div id="churnModelChart"></div>
+                </div>
+            </div>
+            <div class="model-card">
+                <h3 class="chart-title">💰 Revenue Prediction Model</h3>
+                <div class="model-accuracy good">91.2%</div>
+                <p style="text-align: center; color: #6b7280; margin-bottom: 15px;">Accuracy on validation set</p>
+                <div class="chart-container">
+                    <div id="revenueModelChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="forecast-section">
+            <h2 class="chart-title">🎯 AI Predictions & Recommendations</h2>
+            <ul class="prediction-list">
+                <li class="prediction-item">
+                    <strong>High-Value Customer Acquisition</strong><br>
+                    Target customers with CLV > $500 and < 6 months active. Expected ROI: 340%<br>
+                    <span style="color: #10b981; font-weight: 600;">Action: Launch premium campaign next week</span>
+                </li>
+                <li class="prediction-item prediction-risk.medium">
+                    <strong>Payment Method Optimization</strong><br>
+                    67% of customers prefer Visa, but Mastercard has 23% higher AOV<br>
+                    <span style="color: #f59e0b; font-weight: 600;">Action: Update payment flow to highlight Mastercard benefits</span>
+                </li>
+                <li class="prediction-item">
+                    <strong>Seasonal Revenue Spike</strong><br>
+                    Historical data shows 45% revenue increase in Dec-Jan period<br>
+                    <span style="color: #10b981; font-weight: 600;">Action: Prepare inventory and marketing for Q4 surge</span>
+                </li>
+                <li class="prediction-item prediction-risk.high">
+                    <strong>Fraud Risk Alert</strong><br>
+                    Unusual pattern detected: 3x normal transaction volume from new region<br>
+                    <span style="color: #ef4444; font-weight: 600;">Action: Immediate manual review required</span>
+                </li>
+                <li class="prediction-item">
+                    <strong>Customer Lifetime Value Optimization</strong><br>
+                    Customers who use 3+ features have 2.8x higher retention<br>
+                    <span style="color: #10b981; font-weight: 600;">Action: Implement feature adoption campaign</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">🧠 AI Model Performance</h2>
+                <div id="aiPerformanceChart"></div>
+            </div>
+            <div class="chart-container">
+                <h2 class="chart-title">📊 Prediction vs Actual</h2>
+                <div id="predictionAccuracyChart"></div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Initializing AI models...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeIntelligenceHub();
+        });
+
+        async function initializeIntelligenceHub() {
+            const intelligenceData = await fetchIntelligenceData();
+            
+            updateAIMetrics(intelligenceData);
+            createAIModels(intelligenceData);
+            createPredictions(intelligenceData);
+            createAIPerformance(intelligenceData);
+            createPredictionAccuracy(intelligenceData);
+            
+            hideLoading();
+        }
+
+        async function fetchIntelligenceData() {
+            // Simulated AI intelligence data
+            return {
+                aiInsights: 156,
+                predictionsAccuracy: 89.3,
+                anomalies: 3,
+                forecasts: {
+                    revenue: {nextQuarter: 18500, confidence: 0.94},
+                    churn: {riskLevel: 0.23, customers: 23},
+                    growth: {opportunities: 156, potentialRevenue: 23500}
+                },
+                models: {
+                    churn: {accuracy: 0.873, type: 'Random Forest'},
+                    revenue: {accuracy: 0.912, type: 'LSTM Neural Network'}
+                },
+                predictions: [
+                    {metric: 'Revenue', predicted: 18500, actual: 17800, accuracy: 95.2},
+                    {metric: 'Churn', predicted: 23, actual: 19, accuracy: 87.0},
+                    {metric: 'Growth', predicted: 156, actual: 142, accuracy: 91.0}
+                ],
+                anomalies: [
+                    {date: '2025-02-15', type: 'Volume Spike', severity: 'High', description: '3x normal transaction volume'},
+                    {date: '2025-02-08', type: 'Geographic Anomaly', severity: 'Medium', description: 'First transaction from new region'},
+                    {date: '2025-01-28', type: 'Pattern Deviation', severity: 'Low', description: 'Unusual time pattern'}
+                ]
+            };
+        }
+
+        function updateAIMetrics(data) {
+            document.getElementById('aiInsights').textContent = data.aiInsights.toLocaleString();
+            document.getElementById('predictionsAccuracy').textContent = `${data.predictionsAccuracy.toFixed(1)}%`;
+            document.getElementById('anomalies').textContent = data.anomalies;
+        }
+
+        function createAIModels(data) {
+            const models = data.models;
+            
+            const trace = {
+                x: ['Churn Model', 'Revenue Model'],
+                y: [models.churn.accuracy * 100, models.revenue.accuracy * 100],
+                type: 'bar',
+                marker: {
+                    color: ['#ef4444', '#10b981'],
+                    line: {color: 'white', width: 2}
+                },
+                text: [`${(models.churn.accuracy * 100).toFixed(1)}%`, `${(models.revenue.accuracy * 100).toFixed(1)}%`],
+                textposition: 'auto',
+                textfont: {color: 'white', size: 12}
+            };
+
+            const layout = {
+                title: 'AI Model Accuracy',
+                xaxis: {title: 'Model Type'},
+                yaxis: {title: 'Accuracy (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('aiPerformanceChart', [trace], layout, {responsive: true});
+        }
+
+        function createPredictions(data) {
+            // Predictions are displayed in HTML
+        }
+
+        function createAIPerformance(data) {
+            const performance = data.predictions;
+            
+            const accuracyTrace = {
+                x: performance.map(p => p.metric),
+                y: performance.map(p => p.accuracy),
+                type: 'bar',
+                marker: {
+                    color: ['#10b981', '#f59e0b', '#22d3ee'],
+                    line: {color: 'white', width: 2}
+                },
+                text: performance.map(p => `${p.accuracy.toFixed(1)}%`),
+                textposition: 'auto',
+                textfont: {color: 'white', size: 12}
+            };
+
+            const layout = {
+                title: 'Prediction Accuracy by Metric',
+                xaxis: {title: 'Prediction Type'},
+                yaxis: {title: 'Accuracy (%)'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60}
+            };
+
+            Plotly.newPlot('predictionAccuracyChart', [trace], layout, {responsive: true});
+        }
+
+        function createPredictionAccuracy(data) {
+            const predictions = data.predictions;
+            
+            const predictedTrace = {
+                x: predictions.map(p => p.metric),
+                y: predictions.map(p => p.predicted),
+                type: 'bar',
+                name: 'Predicted',
+                marker: {color: '#6366f1'}
+            };
+
+            const actualTrace = {
+                x: predictions.map(p => p.metric),
+                y: predictions.map(p => p.actual),
+                type: 'bar',
+                name: 'Actual',
+                marker: {color: '#10b981'}
+            };
+
+            const layout = {
+                title: 'AI Predictions vs Actual Results',
+                xaxis: {title: 'Metric'},
+                yaxis: {title: 'Value'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#374151'},
+                margin: {t: 20, r: 20, b: 40, l: 60},
+                barmode: 'group',
+                showlegend: true
+            };
+
+            Plotly.newPlot('predictionAccuracyChart', [predictedTrace, actualTrace], layout, {responsive: true});
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
